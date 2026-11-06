@@ -6,7 +6,7 @@ const STORE={
   set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}},
   del(k){try{sessionStorage.removeItem(k);}catch(e){}}
 };
-const CEVA_VERSION="2.4";
+const CEVA_VERSION="2.5";
 const CEVA=(function(){
   const SUBJ_KEYS={lengua:"minaPalabras_v1_",ingles:"englishIsland_v1_",mates:"matesCueva_v1_",ciencias:"plantasScience_v1_"};
   const json=(k,d)=>{ try{ const v=JSON.parse(STORE.get(k)); return v==null?d:v; }catch(e){ return d; } };
