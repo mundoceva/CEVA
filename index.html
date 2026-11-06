@@ -320,7 +320,11 @@ function stickerHTML(id){
 /* ---------- datos iniciales y migración ---------- */
 (function migrate(){
   let ps=CEVA.profiles();
-  if(!ps.length){ ps=[{id:"p2",name:"2º Primaria",avatar:"🐢",color:"#FFC2D4",subjects:["ingles","ciencias"]},{id:"p4",name:"4º Primaria",avatar:"🦊",color:"#B8E28F",subjects:["lengua","mates"]}]; CEVA.setProfiles(ps); }
+  if(!ps.length){ ps=[{id:"p2",name:"2º Primaria",avatar:"🐢",photo:"curso2.webp",color:"#FFC2D4",subjects:["ingles","ciencias"]},{id:"p4",name:"4º Primaria",avatar:"🦊",photo:"curso4.webp",color:"#B8E28F",subjects:["lengua","mates"]}]; CEVA.setProfiles(ps); }
+  if(STORE.get("mig_fotos_curso_v1")==null){
+    let ch=false; ps.forEach(p=>{ if(!p.photo&&(p.id==="p2"||p.id==="p4")){ p.photo=p.id==="p2"?"curso2.webp":"curso4.webp"; ch=true; } });
+    if(ch) CEVA.setProfiles(ps); STORE.set("mig_fotos_curso_v1","1");
+  }
   if(STORE.get("shop_v1")==null){
     const shop=[];
     RARS.forEach(([r,p])=>{ const n=r==="común"||r==="rara"?6:4; for(let i=0;i<n;i++) shop.push({id:uid("st_"),rar:r,price:p,name:"",img:null}); });
