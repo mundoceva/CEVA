@@ -444,5 +444,16 @@ function start(idx,onEnd){
   });
   requestAnimationFrame(loop);
 }
-window.Premios={start,NAMES};
+/* Premios permitidos por perfil (Configuración → Premios). Sin configurar = todos. */
+function allowed(pid){
+  try{
+    const id=pid||(typeof PROFILE!=="undefined"?PROFILE:null);
+    const p=(typeof CEVA!=="undefined"&&id)?CEVA.profiles().find(x=>x.id===id):null;
+    const a=p&&Array.isArray(p.prizes)?p.prizes.filter(i=>i>=0&&i<GAMES.length):null;
+    return a&&a.length?a:GAMES.map((_,i)=>i);
+  }catch(e){ return GAMES.map((_,i)=>i); }
+}
+/* n = vueltas completadas: va rotando solo entre los premios permitidos */
+function pick(n,pid){ const a=allowed(pid); return a[((+n||0)%a.length+a.length)%a.length]; }
+window.Premios={start,NAMES,allowed,pick};
 })();

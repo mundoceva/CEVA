@@ -6,9 +6,9 @@ const STORE={
   set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}},
   del(k){try{sessionStorage.removeItem(k);}catch(e){}}
 };
-const CEVA_VERSION="2.6";
+const CEVA_VERSION="2.7";
 const CEVA=(function(){
-  const SUBJ_KEYS={lengua:"minaPalabras_v1_",ingles:"englishIsland_v1_",mates:"matesCueva_v1_",ciencias:"plantasScience_v1_"};
+  const SUBJ_KEYS={lengua:"minaPalabras_v1_",ingles:"englishIsland_v1_",ingles4:"englishTown4_v1_",mates:"matesCueva_v1_",ciencias:"plantasScience_v1_"};
   const json=(k,d)=>{ try{ const v=JSON.parse(STORE.get(k)); return v==null?d:v; }catch(e){ return d; } };
   const DEF={pass:"1234",mgCost:10,factsCustom:[],factsHidden:[]};
   const cfg=()=>Object.assign({},DEF,json("cfg_v1",{}));
@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   if(ps.length) return;
   CEVA.setProfiles([
     {id:"p2",name:"2º Primaria",avatar:"🐢",photo:"curso2.webp",color:"#FFC2D4",subjects:["ingles","ciencias"]},
-    {id:"p4",name:"4º Primaria",avatar:"🦊",photo:"curso4.webp",color:"#B8E28F",subjects:["lengua","mates"]}
+    {id:"p4",name:"4º Primaria",avatar:"🦊",photo:"curso4.webp",color:"#B8E28F",subjects:["lengua","mates","ingles4"]}
   ]);
   STORE.set("mig_mates_v1","1"); STORE.set("mig_ciencias_v1","1");
 })();

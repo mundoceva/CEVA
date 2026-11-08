@@ -7,6 +7,7 @@
 <link rel="icon" type="image/png" href="icono.png">
 <link rel="apple-touch-icon" href="icono.png">
 <link href="fonts/fonts.css" rel="stylesheet">
+<script src="premios.js"></script>
 <script src="ceva.js"></script>
 <style>
 :root{
@@ -342,7 +343,7 @@ const starStr=n=>"★".repeat(n)+"☆".repeat(3-n);
 function renderMenu(){
   $("gemCount").textContent=CEVA.wallet(PROFILE);
   const done=GAMES.filter(g=>save.perfect[g.id]).length;
-  $("prizeProg").textContent=`Premio: ${done}/${GAMES.length} bloques sin fallos`;
+  $("prizeProg").textContent=`Premio: ${done}/${GAMES.length} bloques sin fallos`+(window.Premios?` · Próximo premio: ${Premios.NAMES[Premios.pick(save.vueltas||0)]}`:"");
   const box=$("cards"); box.innerHTML="";
   GAMES.forEach(g=>{
     const b=document.createElement("button"); b.className="card";
@@ -623,7 +624,14 @@ function startReward(direct){
   });
   requestAnimationFrame(loop);
 }
-$("prize").onclick=()=>startReward(false);
+/* Premio según lo configurado para el perfil: "Salta obstáculos" (índice 1) es el de la cueva */
+$("prize").onclick=()=>{
+  const k=window.Premios?Premios.pick(save.vueltas||0):1;
+  save.vueltas=(save.vueltas||0)+1; persist();
+  if(k===1) return startReward(false);
+  save.perfect={}; persist(); renderMenu();
+  Premios.start(k,()=>{ renderMenu(); show("menu"); });
+};
 
 /* ---------- CÓMO SE HACEN ---------- */
 const H={a:47,b:36,step:0};

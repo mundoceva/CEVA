@@ -208,6 +208,7 @@ const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const SUBJECTS={
   lengua:{name:"Lengua",sub:"Examen de Lengua: ¡A por todas!",file:"lengua.html",icon:"⛏️",bg:"#B8E28F",key:"minaPalabras_v1_",max:24},
   ingles:{name:"Inglés",sub:"Lulu’s English Island · Unit 1",file:"ingles.html",icon:"🌺",bg:"#FFC2D4",key:"englishIsland_v1_",max:27},
+  ingles4:{name:"Inglés 4º",sub:"Ryan’s Town · Unit 1 · Community",file:"ingles4.html",icon:"🏙️",bg:"#A9DDF5",key:"englishTown4_v1_",max:27},
   mates:{name:"Mates",sub:"Multiplicaciones de dos cifras · La cueva profunda",file:"mates.html",icon:"✖️",bg:"#9ED9DE",key:"matesCueva_v1_",max:24},
   ciencias:{name:"Science",sub:"Sunny’s Plant Garden · Unit 1 · Plants",file:"ciencias.html",icon:"🌻",bg:"#C8E8A8",key:"plantasScience_v1_",max:27}
 };
@@ -324,6 +325,11 @@ function stickerHTML(id){
   if(STORE.get("mig_fotos_curso_v1")==null){
     let ch=false; ps.forEach(p=>{ if(!p.photo&&(p.id==="p2"||p.id==="p4")){ p.photo=p.id==="p2"?"curso2.webp":"curso4.webp"; ch=true; } });
     if(ch) CEVA.setProfiles(ps); STORE.set("mig_fotos_curso_v1","1");
+  }
+  /* Inglés de 4º: se añade una vez al perfil de 4º Primaria */
+  if(STORE.get("mig_ingles4_v1")==null){
+    const p4=ps.find(p=>p.id==="p4"); if(p4&&!p4.subjects.includes("ingles4")){ p4.subjects.push("ingles4"); CEVA.setProfiles(ps); }
+    STORE.set("mig_ingles4_v1","1");
   }
   if(STORE.get("shop_v1")==null){
     const shop=[];
@@ -478,10 +484,12 @@ function renderConfig(){
     ${(c.factsCustom||[]).length?`<b>Las tuyas</b><div class="list">${c.factsCustom.map(f=>`<div class="lrow"><b>${esc(f.t)}<br><small style="font-weight:700">${esc(f.x)}</small></b><button class="btn" data-fd="${f.id}">Quitar</button></div>`).join("")}</div>`:""}
     <b>Incluidas (${FACTS.length}). Toca para ocultar o volver a mostrar.</b>
     <div class="facts">${FACTS.map((f,i)=>`<div class="lrow${hid.has("b"+i)?" off":""}"><span style="flex:1"><b>${esc(f[0])}:</b> ${esc(f[1])}</span><button class="btn" data-fh="b${i}" style="padding:6px 10px">${hid.has("b"+i)?"Mostrar":"Ocultar"}</button></div>`).join("")}</div>`;
-  const premios=`<p class="hint">Juega a cualquier premio sin gastar nada ni tocar el progreso de nadie.</p><div class="row">${Premios.NAMES.map((n,i)=>`<button class="btn" data-pz="${i}">🎁 ${n}</button>`).join("")}</div>`;
+  const premios=`<p class="hint">Elige qué juegos de premio le pueden tocar a cada perfil al completar todos los juegos sin fallos. Van saliendo por turnos. Si no marcas ninguno, salen todos.</p>
+    ${ps.map(p=>{ const on=new Set(Premios.allowed(p.id)); return `<b>${esc(p.name)}</b><div class="list">${Premios.NAMES.map((n,i)=>`<button class="toggle${on.has(i)?" on":""}" data-pp="${p.id}" data-pi="${i}"><span class="box">${on.has(i)?"✓":""}</span><span>🎁 ${n}</span></button>`).join("")}</div>`; }).join("")}
+    <b>Probar los premios</b><p class="hint">Juega a cualquier premio sin gastar nada ni tocar el progreso de nadie.</p><div class="row">${Premios.NAMES.map((n,i)=>`<button class="btn" data-pz="${i}">🎮 ${n}</button>`).join("")}</div>`;
   const pass=`<label class="f">Nueva contraseña<input type="password" id="p1" inputmode="numeric" autocomplete="off"></label><label class="f">Repítela<input type="password" id="p2" inputmode="numeric" autocomplete="off"></label><button class="btn go" data-pw>Cambiar contraseña</button>`;
   $("cfgBody").innerHTML=sec("perfiles","👤 Perfiles",prof)+sec("tienda","🛍️ Pegatinas de la tienda",tienda)+sec("portadas","🖼️ Portadas de las materias",portadas)+
-    sec("mini","🎮 Minijuegos",mini)+sec("curios","💡 Curiosidades",curios)+sec("premios","🎁 Probar los premios",premios)+sec("pass","🔒 Contraseña",pass);
+    sec("mini","🎮 Minijuegos",mini)+sec("curios","💡 Curiosidades",curios)+sec("premios","🎁 Juegos de premio",premios)+sec("pass","🔒 Contraseña",pass);
   const B=$("cfgBody");
   B.querySelectorAll("details").forEach(d=>d.addEventListener("toggle",()=>{ if(d.open) openSec=d.dataset.sec; }));
   B.querySelectorAll("[data-ep]").forEach(b=>b.onclick=()=>editProfile(b.dataset.ep));
@@ -496,6 +504,11 @@ function renderConfig(){
   B.querySelectorAll("[data-fd]").forEach(b=>b.onclick=()=>{ const c2=CEVA.cfg(); c2.factsCustom=(c2.factsCustom||[]).filter(f=>f.id!==b.dataset.fd); CEVA.setCfg(c2); openSec="curios"; renderConfig(); });
   B.querySelectorAll("[data-fh]").forEach(b=>b.onclick=()=>{ const c2=CEVA.cfg(), h=new Set(c2.factsHidden||[]), id=b.dataset.fh; h.has(id)?h.delete(id):h.add(id); c2.factsHidden=[...h]; CEVA.setCfg(c2); openSec="curios"; renderConfig(); });
   B.querySelectorAll("[data-pz]").forEach(b=>b.onclick=()=>Premios.start(+b.dataset.pz,()=>{}));
+  B.querySelectorAll("[data-pp]").forEach(b=>b.onclick=()=>{ const ps2=CEVA.profiles(), p=ps2.find(x=>x.id===b.dataset.pp); if(!p) return;
+    const i=+b.dataset.pi, on=new Set(Premios.allowed(p.id)); on.has(i)?on.delete(i):on.add(i);
+    if(!on.size){ toast("Deja al menos un premio"); return; }
+    p.prizes=[...on].sort((a,b)=>a-b); if(p.prizes.length===Premios.NAMES.length) delete p.prizes;
+    CEVA.setProfiles(ps2); openSec="premios"; renderConfig(); });
   B.querySelector("[data-pw]").onclick=()=>{ const a=$("p1").value, b2=$("p2").value; if(a.length<4){ toast("Pon al menos 4 caracteres"); return; } if(a!==b2){ toast("No coinciden"); return; }
     const c2=CEVA.cfg(); c2.pass=a; CEVA.setCfg(c2); $("p1").value=$("p2").value=""; toast("Contraseña cambiada"); };
   show("config");

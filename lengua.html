@@ -619,7 +619,7 @@ document.addEventListener("keydown",e=>{
   const map={ArrowLeft:"left",ArrowRight:"right",ArrowDown:"down",ArrowUp:"rot"," ":"drop"};
   if(map[e.key]){ e.preventDefault(); act(map[e.key]); }
 });
-$("prize").onclick=()=>{ save.perfect={}; persist(); Premios.start(save.vueltas||0,()=>{ save.best={}; save.perfect={}; save.vueltas=(save.vueltas||0)+1; persist(); renderMenu(); show("menu"); }); };
+$("prize").onclick=()=>{ save.perfect={}; persist(); Premios.start(Premios.pick(save.vueltas||0),()=>{ save.best={}; save.perfect={}; save.vueltas=(save.vueltas||0)+1; persist(); renderMenu(); show("menu"); }); };
 $("rExit").onclick=()=>{ stopReward(false); renderMenu(); show("menu"); };
 
 /* ---------- MINIJUEGOS ---------- */
@@ -651,7 +651,7 @@ MiniGames.init({
   ]
 });
 const _renderMenu=renderMenu;
-renderMenu=function(){ _renderMenu(); const pp=$("prizeProg"); if(pp) pp.textContent+=` · Próximo premio: ${Premios.NAMES[(save.vueltas||0)%Premios.NAMES.length]}`; MiniGames.renderCards($("mgCards")); if(window.Extras) Extras.renderButtons($("exBtns")); };
+renderMenu=function(){ _renderMenu(); const pp=$("prizeProg"); if(pp) pp.textContent+=` · Próximo premio: ${Premios.NAMES[Premios.pick(save.vueltas||0)]}`; MiniGames.renderCards($("mgCards")); if(window.Extras) Extras.renderButtons($("exBtns")); };
 
 renderMenu();
 </script>
