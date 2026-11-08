@@ -1,4 +1,4 @@
-/* Inglés 4º · Unit 1 Community: teoría (con audio) y fichas */
+/* Inglés · Unit 1 Community: teoría (con audio) y fichas */
 (function(){
 const bn=CEVA.banner("ingles4");
 if(bn){ const h=document.querySelector(".hero"); if(h){ h.innerHTML=`<img src="${bn}" alt="" style="display:block;width:100%">`; h.style.background="none"; } }
@@ -80,7 +80,7 @@ const SHEETS=[
     return {key:m.join()+i,q:`${row}<br>The ${m[i]} is ${ln(90)} the ${m[1]}.`,a:`next to`}; }}
 ];
 
-Extras.init({subject:"Inglés 4º · Unit 1 Community",lang:"en-GB",
+Extras.init({subject:"Inglés · Unit 1 Community",lang:"en-GB",
   theme:{bg:"#EEF7FF",card:"#FFFFFF",ink:"#17324D",line:"#17324D",accent:"#2F7DE1",soft:"#E3F0FF",rad:"16px"},
   theory:THEORY, sheets:SHEETS});
 renderMenu();
