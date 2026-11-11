@@ -352,7 +352,7 @@ function renderMenu(){
   const nx=MILES.find(m=>tot<m.at);
   $("nextUnlock").textContent=nx?`Álbum de la ciudad · Siguiente pegatina con ${nx.at}⭐ (te faltan ${nx.at-tot})`:"Álbum completo. ¡Conoces toda la ciudad!";
   const done=GAMES.filter(g=>save.perfect[g.id]).length;
-  $("prizeProg").textContent=`Premio: ${done}/${GAMES.length} juegos sin fallos`+(save.vueltas?` · Vueltas completadas: ${save.vueltas}`:"")+` · Cada estrella = 1 💎 · Próximo premio: ${Premios.NAMES[Premios.pick(save.vueltas||0)]}`;
+  $("prizeProg").textContent=`Premio: ${done}/${GAMES.length} juegos sin fallos`+(save.vueltas?` · Vueltas completadas: ${save.vueltas}`:"")+` · Cada estrella = 1 💎 · Al terminar, ¡eliges tú el juego!`;
   const box=$("cards"); box.innerHTML="";
   GAMES.forEach((g,i)=>{
     const open=isOpen(i), b=document.createElement("button");
@@ -458,14 +458,14 @@ function finish(){
   $("rTip").textContent=(st?`Ganas ${st} 💎. `:"Sin estrellas no hay gemas esta vez. ")+"Truco: "+TIPS[S.id];
   $("gemTotal").textContent=`💎 ${CEVA.wallet(PROFILE)}`;
   $("prize").hidden=!all;
-  $("prize").textContent=`Jugar al premio: ${Premios.NAMES[Premios.pick(save.vueltas||0)]}`;
+  $("prize").textContent="🎁 Elegir juego de premio";
   show("result"); $("again").focus();
 }
 $("next").onclick=next;
 $("quit").onclick=()=>{ renderMenu(); show("menu"); };
 $("again").onclick=()=>start(S.id);
 $("toMenu").onclick=()=>{ renderMenu(); show("menu"); };
-$("prize").onclick=()=>{ save.perfect={}; persist(); Premios.start(Premios.pick(save.vueltas||0),()=>{ save.best={}; save.perfect={}; save.vueltas=(save.vueltas||0)+1; persist(); renderMenu(); show("menu"); }); };
+$("prize").onclick=()=>Premios.choose(k=>{ save.perfect={}; persist(); Premios.start(k,()=>{ save.best={}; save.perfect={}; save.vueltas=(save.vueltas||0)+1; persist(); renderMenu(); show("menu"); }); });
 
 /* ---------- MINIJUEGOS ---------- */
 const VOC=[

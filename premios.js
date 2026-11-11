@@ -22,6 +22,13 @@ const CSS = `
 .pz-end div{background:#fff;color:#17324D;border-radius:22px;padding:22px;text-align:center;max-width:320px;display:flex;flex-direction:column;gap:12px}
 .pz-end b{font-size:1.4rem}
 .pz-end button{font:inherit;font-weight:900;font-size:1.1rem;padding:12px;border-radius:14px;border:3px solid #17324D;background:#E8457A;color:#fff}
+.pz-pick{flex:1;overflow:auto;padding:8px 14px 20px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.pz-pick h2{margin:6px 0 0;font-size:1.5rem;text-align:center}
+.pz-pick p{margin:0;font-weight:800;opacity:.85;text-align:center}
+.pz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;width:100%;max-width:560px}
+.pz-game{font:inherit;font-weight:900;font-size:1.05rem;color:#17324D;background:#fff;border:3px solid #FFD23F;border-radius:18px;padding:16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 5px 0 #FFD23F;touch-action:manipulation}
+.pz-game:active{transform:translateY(3px);box-shadow:0 2px 0 #FFD23F}
+.pz-game span{font-size:2.6rem;line-height:1}
 `;
 function injectCSS(){ if(document.getElementById("pz-css")) return; const s=document.createElement("style"); s.id="pz-css"; s.textContent=CSS; document.head.appendChild(s); }
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
@@ -453,7 +460,20 @@ function allowed(pid){
     return a&&a.length?a:GAMES.map((_,i)=>i);
   }catch(e){ return GAMES.map((_,i)=>i); }
 }
+const ICONS=["🧱","🏃","🏓","💎","🏍️"];
+/* El peque elige el premio entre los permitidos para su perfil. cb(indice). Si cierra, no se gasta nada. */
+function choose(cb,pid){
+  const a=allowed(pid); if(a.length===1){ cb(a[0]); return; }
+  injectCSS();
+  const ov=document.createElement("div"); ov.className="pz-ov";
+  ov.innerHTML=`<div class="pz-top"><b>🎁 ¡Premio conseguido!</b><button class="pz-btn" data-x>Ahora no</button></div>
+    <div class="pz-pick"><h2>¿A qué quieres jugar?</h2><p>Elige tu juego de premio</p>
+    <div class="pz-grid">${a.map(i=>`<button class="pz-game" data-i="${i}"><span>${ICONS[i]||"🎮"}</span>${NAMES[i]}</button>`).join("")}</div></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector("[data-x]").onclick=()=>ov.remove();
+  ov.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{ ov.remove(); cb(+b.dataset.i); });
+}
 /* n = vueltas completadas: va rotando solo entre los premios permitidos */
 function pick(n,pid){ const a=allowed(pid); return a[((+n||0)%a.length+a.length)%a.length]; }
-window.Premios={start,NAMES,allowed,pick};
+window.Premios={start,choose,NAMES,ICONS,allowed,pick};
 })();
