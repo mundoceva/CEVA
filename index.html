@@ -175,6 +175,13 @@ input[type=text],input[type=password],input[type=number],textarea,.subj .ic,.ite
     <div class="coll" id="pColl" style="margin-top:8px"></div>
   </section>
 
+  <!-- ASIGNATURA -->
+  <section id="area" hidden>
+    <div class="row between"><button class="btn" id="aBack">⟵ Materias</button><span class="wallet" id="aWallet">💎 0</span></div>
+    <div class="top" style="margin-top:16px"><div class="subj" style="padding:0;border:0;box-shadow:none;background:none"><span class="ic" id="aIc"></span></div><div><h2 id="aName"></h2><p class="lead" style="margin-top:2px" id="aSub"></p></div></div>
+    <div class="subjects" id="units" style="margin-top:18px"></div>
+  </section>
+
   <!-- TIENDA -->
   <section id="shop" hidden>
     <div class="row between"><button class="btn" id="shopBack">⟵ Volver</button><span class="wallet" id="sWallet">💎 0</span></div>
@@ -202,16 +209,32 @@ input[type=text],input[type=password],input[type=number],textarea,.subj .ic,.ite
 const $=id=>document.getElementById(id);
 const esc=t=>String(t==null?"":t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function toast(t){ const d=document.createElement("div"); d.className="toast"; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),2000); }
-function show(id){ ["home","profile","shop","config","edit","sedit"].forEach(s=>$(s).hidden=s!==id); window.scrollTo(0,0); }
+function show(id){ ["home","profile","area","shop","config","edit","sedit"].forEach(s=>$(s).hidden=s!==id); window.scrollTo(0,0); }
 const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
+/* Cada entrada es un tema (unit) de una asignatura (name) de un curso. En el perfil se agrupan por asignatura. */
 const SUBJECTS={
-  lengua:{name:"Lengua",sub:"Examen de Lengua: ¡A por todas!",file:"lengua.html",icon:"⛏️",bg:"#B8E28F",key:"minaPalabras_v1_",max:24},
-  ingles:{name:"Inglés",sub:"Lulu’s English Island · Unit 1",file:"ingles.html",icon:"🌺",bg:"#FFC2D4",key:"englishIsland_v1_",max:27},
-  ingles4:{name:"Inglés",sub:"Ryan’s Town · Unit 1 · Community",file:"ingles4.html",icon:"🏙️",bg:"#A9DDF5",key:"englishTown4_v1_",max:27},
-  mates:{name:"Mates",sub:"Multiplicaciones de dos cifras · La cueva profunda",file:"mates.html",icon:"✖️",bg:"#9ED9DE",key:"matesCueva_v1_",max:24},
-  ciencias:{name:"Science",sub:"Sunny’s Plant Garden · Unit 1 · Plants",file:"ciencias.html",icon:"🌻",bg:"#C8E8A8",key:"plantasScience_v1_",max:27}
+  lengua:{curso:"4",name:"Lengua",unit:"Examen",title:"¡A por todas!",sub:"La mina de las palabras",file:"lengua.html",icon:"⛏️",bg:"#B8E28F",key:"minaPalabras_v1_",max:24},
+  ingles:{curso:"2",name:"Inglés",unit:"Unit 1",title:"Lulu’s English Island",sub:"Colores, números y saludos",file:"ingles.html",icon:"🌺",bg:"#FFC2D4",key:"englishIsland_v1_",max:27},
+  ingles4:{curso:"4",name:"Inglés",unit:"Unit 1",title:"Community",sub:"Ryan’s Town",file:"ingles4.html",icon:"🏙️",bg:"#A9DDF5",key:"englishTown4_v1_",max:27},
+  mates:{curso:"4",name:"Mates",unit:"Multiplicaciones",title:"De dos cifras",sub:"La cueva profunda",file:"mates.html",icon:"✖️",bg:"#9ED9DE",key:"matesCueva_v1_",max:24},
+  ciencias:{curso:"2",name:"Science",unit:"Unit 1",title:"Plants",sub:"Sunny’s Plant Garden",file:"ciencias.html",icon:"🌻",bg:"#C8E8A8",key:"plantasScience_v1_",max:27},
+  ciencias4u3:{curso:"4",name:"Science",unit:"Unit 3",title:"Heat and temperature",sub:"Dr Thermo’s Lab",file:"ciencias4.html",icon:"🌡️",bg:"#FFC79E",key:"heatScience4_v1_",max:27}
 };
+Object.values(SUBJECTS).forEach(S=>{ if(!S.sub2) S.sub2=`${S.unit} · ${S.title}`; });
+const AREAS={Science:{icon:"🔬",bg:"#C8E8A8"},"Inglés":{icon:"🗣️",bg:"#A9DDF5"},Lengua:{icon:"📖",bg:"#B8E28F"},Mates:{icon:"➗",bg:"#9ED9DE"}};
+const areaOf=n=>AREAS[n]||{icon:"📚",bg:"#FFE08A"};
+const unitNum=S=>{ const m=/(\d+)/.exec(S.unit||""); return m?+m[1]:99; };
+const CURSOS=[["2","2º Primaria"],["4","4º Primaria"]];
+const cursoSubjects=c=>Object.keys(SUBJECTS).filter(k=>SUBJECTS[k].curso===c);
+/* Curso de un perfil: el guardado; si no, se deduce (perfiles de serie, nombre con 2º/4º o sus materias) */
+function cursoOf(p){
+  if(p.curso!==undefined) return p.curso;
+  if(p.id==="p2") return "2"; if(p.id==="p4") return "4";
+  const m=/([1-6])\s*º/.exec(p.name||""); if(m&&CURSOS.some(c=>c[0]===m[1])) return m[1];
+  const cs=[...new Set((p.subjects||[]).map(s=>SUBJECTS[s]&&SUBJECTS[s].curso).filter(Boolean))];
+  return cs.length===1?cs[0]:null;
+}
 const AVATARS=["🦊","🐢","🐱","🐶","🦁","🐼","🐨","🐸","🦄","🐙","🐬","🦖","🐝","🐧","🦉","🐰","🐯","🦋"];
 const COLORS=["#B8E28F","#FFC2D4","#A9DDF5","#FFE08A","#D7C2F2","#FFC79E"];
 const RARS=[["común",10],["rara",25],["épica",50],["legendaria",100]];
@@ -321,16 +344,22 @@ function stickerHTML(id){
 /* ---------- datos iniciales y migración ---------- */
 (function migrate(){
   let ps=CEVA.profiles();
-  if(!ps.length){ ps=[{id:"p2",name:"2º Primaria",avatar:"🐢",photo:"curso2.webp",color:"#FFC2D4",subjects:["ingles","ciencias"]},{id:"p4",name:"4º Primaria",avatar:"🦊",photo:"curso4.webp",color:"#B8E28F",subjects:["lengua","mates"]}]; CEVA.setProfiles(ps); }
+  if(!ps.length){ ps=[{id:"p2",name:"2º Primaria",avatar:"🐢",photo:"curso2.webp",color:"#FFC2D4",curso:"2",subjects:cursoSubjects("2")},{id:"p4",name:"4º Primaria",avatar:"🦊",photo:"curso4.webp",color:"#B8E28F",curso:"4",subjects:cursoSubjects("4")}]; CEVA.setProfiles(ps); }
   if(STORE.get("mig_fotos_curso_v1")==null){
     let ch=false; ps.forEach(p=>{ if(!p.photo&&(p.id==="p2"||p.id==="p4")){ p.photo=p.id==="p2"?"curso2.webp":"curso4.webp"; ch=true; } });
     if(ch) CEVA.setProfiles(ps); STORE.set("mig_fotos_curso_v1","1");
   }
-  /* Inglés de 4º: se añade una vez al perfil de 4º Primaria */
-  if(STORE.get("mig_ingles4_v1")==null){
-    const p4=ps.find(p=>p.id==="p4"); if(p4&&!p4.subjects.includes("ingles4")){ p4.subjects.push("ingles4"); CEVA.setProfiles(ps); }
-    STORE.set("mig_ingles4_v1","1");
-  }
+  /* Todas las materias de su curso, activas por defecto. "seen" guarda las que ya ha tenido:
+     si un adulto desactiva una, no se vuelve a activar sola. */
+  { let ch=false;
+    ps.forEach(p=>{
+      const c=cursoOf(p); if(p.curso===undefined){ p.curso=c; ch=true; }
+      const seen=new Set(p.seen||p.subjects||[]);
+      if(c) cursoSubjects(c).forEach(k=>{ if(!seen.has(k)){ if(!p.subjects.includes(k)) p.subjects.push(k); seen.add(k); ch=true; } });
+      p.subjects.forEach(k=>{ if(!seen.has(k)){ seen.add(k); ch=true; } });
+      if(!p.seen) ch=true; p.seen=[...seen];
+    });
+    if(ch) CEVA.setProfiles(ps); }
   if(STORE.get("shop_v1")==null){
     const shop=[];
     RARS.forEach(([r,p])=>{ const n=r==="común"||r==="rara"?6:4; for(let i=0;i<n;i++) shop.push({id:uid("st_"),rar:r,price:p,name:"",img:null}); });
@@ -366,11 +395,13 @@ function openProfile(id){
   $("pAva").innerHTML=avaHTML(current); $("pAva").style.background=current.color;
   $("pName").textContent=current.name; $("pWallet").textContent=`💎 ${CEVA.wallet(current.id)}`;
   const box=$("subjects"); box.innerHTML="";
-  if(!current.subjects.length) box.innerHTML=`<div class="empty">Todavía no hay materias. Un adulto puede añadirlas en ⚙️ Configuración.</div>`;
-  current.subjects.forEach(sid=>{ const S=SUBJECTS[sid]; if(!S) return; const st=starsOf(current.id,sid);
+  const groups=areasOfProfile();
+  if(!groups.length) box.innerHTML=`<div class="empty">Todavía no hay materias. Un adulto puede añadirlas en ⚙️ Configuración.</div>`;
+  groups.forEach(([name,sids])=>{ const A=areaOf(name);
+    const st=sids.reduce((a,s)=>a+starsOf(current.id,s),0), mx=sids.reduce((a,s)=>a+SUBJECTS[s].max,0);
     const b=document.createElement("button"); b.className="subj";
-    b.innerHTML=`<span class="ic" style="background:${S.bg}">${S.icon}</span><span style="flex:1"><b>${S.name}</b><small>${S.sub}</small><div class="meter"><span style="width:${Math.round(st/S.max*100)}%"></span></div><small style="margin-top:4px">⭐ ${st}/${S.max}</small></span>`;
-    b.onclick=()=>{ location.href=`${S.file}?p=${encodeURIComponent(current.id)}`; }; box.appendChild(b); });
+    b.innerHTML=`<span class="ic" style="background:${A.bg}">${A.icon}</span><span style="flex:1"><b>${esc(name)}</b><small>${sids.map(s=>esc(SUBJECTS[s].unit)).join(" · ")}</small><div class="meter"><span style="width:${Math.round(st/mx*100)}%"></span></div><small style="margin-top:4px">⭐ ${st}/${mx}</small></span><span style="font-size:1.6rem;font-weight:900">›</span>`;
+    b.onclick=()=>openArea(name); box.appendChild(b); });
   const f=todayFact(); $("fact").hidden=!f; if(f) $("fact").innerHTML=`<b>💡 ¿Sabías que…? ${esc(f.t)}</b>${esc(f.x)}`;
   const own=current.owned||[];
   $("pColl").innerHTML=own.length?own.map(e=>stickerHTML(e)).filter(Boolean).map(h=>`<span>${h}</span>`).join("")||`<span class="none">Aún no tienes pegatinas.</span>`:`<span class="none">Aún no tienes pegatinas. ¡Visita la tienda!</span>`;
@@ -378,6 +409,29 @@ function openProfile(id){
   show("profile");
 }
 $("back").onclick=renderHome;
+
+/* ---------- asignatura: lista de temas ---------- */
+function areasOfProfile(){
+  const m=new Map();
+  current.subjects.forEach(sid=>{ const S=SUBJECTS[sid]; if(!S) return; if(!m.has(S.name)) m.set(S.name,[]); m.get(S.name).push(sid); });
+  m.forEach(l=>l.sort((a,b)=>unitNum(SUBJECTS[a])-unitNum(SUBJECTS[b])));
+  return [...m.entries()];
+}
+function openArea(name){
+  const g=areasOfProfile().find(x=>x[0]===name); if(!g) return openProfile(current.id);
+  const A=areaOf(name);
+  $("aIc").textContent=A.icon; $("aIc").style.background=A.bg;
+  $("aName").textContent=name; $("aSub").textContent=`${current.name} · Elige un tema`;
+  $("aWallet").textContent=`💎 ${CEVA.wallet(current.id)}`;
+  const box=$("units"); box.innerHTML="";
+  g[1].forEach(sid=>{ const S=SUBJECTS[sid], st=starsOf(current.id,sid);
+    const b=document.createElement("button"); b.className="subj";
+    b.innerHTML=`<span class="ic" style="background:${S.bg}">${S.icon}</span><span style="flex:1"><b>${esc(S.unit)}</b><small style="color:var(--cardInk);font-size:1.05rem">${esc(S.title)}</small><small>${esc(S.sub)}</small><div class="meter"><span style="width:${Math.round(st/S.max*100)}%"></span></div><small style="margin-top:4px">⭐ ${st}/${S.max}</small></span>`;
+    b.onclick=()=>{ location.href=`${S.file}?p=${encodeURIComponent(current.id)}`; }; box.appendChild(b); });
+  history.replaceState(null,"","index.html?p="+encodeURIComponent(current.id)+"&a="+encodeURIComponent(name));
+  show("area");
+}
+$("aBack").onclick=()=>openProfile(current.id);
 
 /* ---------- tienda ---------- */
 function renderShop(){
@@ -466,14 +520,14 @@ let openSec="perfiles";
 function sec(id,title,html){ return `<details class="sec" data-sec="${id}"${openSec===id?" open":""}><summary>${title}</summary><div>${html}</div></details>`; }
 function renderConfig(){
   const c=CEVA.cfg(), ps=CEVA.profiles(), shop=shopGet();
-  const prof=`<div class="list">${ps.map(p=>`<div class="lrow"><span class="ava sm" style="background:${p.color}">${avaHTML(p)}</span><b>${esc(p.name)}<br><small style="font-weight:700;opacity:.75">${p.subjects.map(s=>SUBJECTS[s]?SUBJECTS[s].name:"").join(", ")||"Sin materias"} · 💎 ${CEVA.wallet(p.id)}</small></b><button class="btn" data-ep="${p.id}">Editar</button></div>`).join("")}</div>
+  const prof=`<div class="list">${ps.map(p=>`<div class="lrow"><span class="ava sm" style="background:${p.color}">${avaHTML(p)}</span><b>${esc(p.name)}<br><small style="font-weight:700;opacity:.75">${[...new Set(p.subjects.map(s=>SUBJECTS[s]?SUBJECTS[s].name:"").filter(Boolean))].join(", ")||"Sin materias"} · 💎 ${CEVA.wallet(p.id)}</small></b><button class="btn" data-ep="${p.id}">Editar</button></div>`).join("")}</div>
     <button class="btn" data-np>＋ Añadir perfil</button>`;
   const tienda=`<p class="hint">Rellena los huecos con imágenes, nombre y precio. Las de emoticono vienen de serie y también se pueden cambiar por una imagen tuya. Los huecos vacíos no salen en la tienda. Una pegatina que ya está en la colección de alguien no se puede editar.</p>`+
     RARS.map(([r])=>`<b class="rar ${r}" style="font-size:.95rem">${r}</b><div class="slots">${shop.filter(x=>x.rar===r).map(x=>{ const own=ownersOf(x.id);
       return `<button class="slot${x.img||x.emoji?" full":""}${own.length?" lock":""}" data-st="${x.id}"><span class="im">${x.img?`<img src="${x.img}" alt="">`:(x.emoji||"＋")}</span><span>${x.name?esc(x.name):"Vacía"}</span><span>💎 ${x.price}${own.length?" · 🔒":""}</span></button>`; }).join("")}
       <button class="slot" data-ns="${r}"><span class="im">＋</span><span>Nuevo hueco</span></button></div>`).join("");
   const portadas=Object.entries(SUBJECTS).map(([k,S])=>{ const b=CEVA.banner(k);
-    return `<b>${S.icon} ${S.name}</b><div class="bannerprev">${b?`<img src="${b}" alt="">`:"Portada original"}</div><div class="row"><button class="btn" data-bn="${k}">📷 Cambiar imagen</button>${b?`<button class="btn" data-bd="${k}">Volver a la original</button>`:""}</div>`; }).join("");
+    return `<b>${S.icon} ${S.name} ${S.curso}º · ${esc(S.sub2)}</b><div class="bannerprev">${b?`<img src="${b}" alt="">`:"Portada original"}</div><div class="row"><button class="btn" data-bn="${k}">📷 Cambiar imagen</button>${b?`<button class="btn" data-bd="${k}">Volver a la original</button>`:""}</div>`; }).join("");
   const mini=`<label class="f">Precio de cada partida (gemas)<input type="number" min="0" max="999" id="mgCost" value="${c.mgCost}"></label>
     <p class="hint">Perfecta: se devuelve todo. Casi perfecta: la mitad. Si falla mucho: nada.</p><button class="btn go" data-mg>Guardar precio</button>`;
   const hid=new Set(c.factsHidden||[]);
@@ -517,8 +571,8 @@ function renderConfig(){
 /* ---------- editar perfil ---------- */
 function editProfile(id){
   const isNew=!id;
-  const base=id?CEVA.profiles().find(p=>p.id===id):{id:uid("p"),name:"",avatar:"🐱",color:COLORS[2],subjects:[]};
-  const d=JSON.parse(JSON.stringify(base));
+  const base=id?CEVA.profiles().find(p=>p.id===id):{id:uid("p"),name:"",avatar:"🐱",color:COLORS[2],subjects:[],curso:null};
+  const d=JSON.parse(JSON.stringify(base)); if(d.curso===undefined) d.curso=cursoOf(d);
   function render(){
     $("editBody").innerHTML=`<h2>${isNew?"Nuevo perfil":"Editar perfil"}</h2>
       <label class="f">Nombre<input type="text" id="eName" maxlength="20" autocomplete="off" value="${esc(d.name)}"></label>
@@ -527,8 +581,10 @@ function editProfile(id){
         <p class="hint">Al elegirla podrás moverla y hacer zoom para centrarla.</p></div>
       <div class="f">Dibujo (si no hay foto)<div class="pickgrid">${AVATARS.map(a=>`<button class="pick${d.avatar===a?" sel":""}" data-a="${a}">${a}</button>`).join("")}</div></div>
       <div class="f">Color<div class="pickgrid">${COLORS.map(c=>`<button class="sw${d.color===c?" sel":""}" data-c="${c}" style="background:${c}" aria-label="color"></button>`).join("")}</div></div>
-      <div class="f">Materias<div class="list">${Object.entries(SUBJECTS).map(([k,S])=>`<button class="toggle${d.subjects.includes(k)?" on":""}" data-s="${k}"><span class="box">${d.subjects.includes(k)?"✓":""}</span><span>${S.icon} ${S.name}<br><small style="font-weight:700;opacity:.75">${S.sub}</small></span></button>`).join("")}</div></div>
-      ${isNew?"":`<div class="f">Progreso<p class="hint">Borra estrellas, desbloqueos, gemas ganadas y récords de una materia para empezar de cero.</p><div class="row">${Object.entries(SUBJECTS).map(([k,S])=>`<button class="btn" data-r="${k}">Reiniciar ${S.name}</button>`).join("")}</div></div>`}
+      <div class="f">Curso<div class="row">${[...CURSOS,[null,"Otro"]].map(([c,n])=>`<button class="btn${d.curso===c?" go":""}" data-cu="${c||""}">${n}</button>`).join("")}</div>
+        <p class="hint">Las materias de su curso se activan solas, también las nuevas que vayan saliendo. Puedes desactivarlas abajo.</p></div>
+      <div class="f">Materias<div class="list">${Object.entries(SUBJECTS).map(([k,S])=>`<button class="toggle${d.subjects.includes(k)?" on":""}" data-s="${k}"><span class="box">${d.subjects.includes(k)?"✓":""}</span><span>${S.icon} ${S.name} ${S.curso}º<br><small style="font-weight:700;opacity:.75">${esc(S.sub2)}</small></span></button>`).join("")}</div></div>
+      ${isNew?"":`<div class="f">Progreso<p class="hint">Borra estrellas, desbloqueos, gemas ganadas y récords de una materia para empezar de cero.</p><div class="row">${Object.entries(SUBJECTS).map(([k,S])=>`<button class="btn" data-r="${k}">Reiniciar ${S.name} ${S.curso}º · ${esc(S.unit)}</button>`).join("")}</div></div>`}
       <div class="row between" style="margin-top:6px">${!isNew&&CEVA.profiles().length>1?`<button class="btn danger" data-del>Eliminar perfil</button>`:"<span></span>"}
         <div class="row"><button class="btn" data-cancel>Cancelar</button><button class="btn go" data-save>Guardar</button></div></div>`;
     const E=$("editBody"), keep=()=>{ d.name=$("eName").value; };
@@ -536,13 +592,15 @@ function editProfile(id){
     const np=E.querySelector("[data-nph]"); if(np) np.onclick=()=>{ keep(); delete d.photo; render(); };
     E.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{ keep(); d.avatar=b.dataset.a; render(); });
     E.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{ keep(); d.color=b.dataset.c; render(); });
+    E.querySelectorAll("[data-cu]").forEach(b=>b.onclick=()=>{ keep(); d.curso=b.dataset.cu||null; if(d.curso) cursoSubjects(d.curso).forEach(k=>{ if(!d.subjects.includes(k)) d.subjects.push(k); }); render(); });
     E.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{ keep(); const k=b.dataset.s; d.subjects=d.subjects.includes(k)?d.subjects.filter(x=>x!==k):[...d.subjects,k]; render(); });
-    E.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{ const S=SUBJECTS[b.dataset.r]; if(confirm(`¿Borrar todo el progreso de ${S.name} de ${d.name||"este perfil"}?`)){ STORE.del(S.key+d.id); b.textContent="Reiniciado ✓"; } });
+    E.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{ const S=SUBJECTS[b.dataset.r]; if(confirm(`¿Borrar todo el progreso de ${S.name} (${S.unit}) de ${d.name||"este perfil"}?`)){ STORE.del(S.key+d.id); b.textContent="Reiniciado ✓"; } });
     const del=E.querySelector("[data-del]"); if(del) del.onclick=()=>{ if(!confirm(`¿Eliminar el perfil de ${d.name}? Se borrará su progreso y su colección.`)) return;
       Object.values(SUBJECTS).forEach(S=>STORE.del(S.key+d.id)); CEVA.setProfiles(CEVA.profiles().filter(p=>p.id!==d.id)); openSec="perfiles"; renderConfig(); };
     E.querySelector("[data-cancel]").onclick=()=>{ openSec="perfiles"; renderConfig(); };
     E.querySelector("[data-save]").onclick=()=>{ keep(); d.name=d.name.trim(); if(!d.name){ toast("Pon un nombre"); return; }
-      const ps=CEVA.profiles(); if(isNew) ps.push(d); else { const i=ps.findIndex(p=>p.id===d.id); const cur=ps[i]; ps[i]=Object.assign({},cur,{name:d.name,photo:d.photo,avatar:d.avatar,color:d.color,subjects:d.subjects}); if(!d.photo) delete ps[i].photo; }
+      const ps=CEVA.profiles(); d.seen=[...new Set([...(d.seen||[]),...d.subjects,...(d.curso?cursoSubjects(d.curso):[])])];
+      if(isNew) ps.push(d); else { const i=ps.findIndex(p=>p.id===d.id); const cur=ps[i]; ps[i]=Object.assign({},cur,{name:d.name,photo:d.photo,avatar:d.avatar,color:d.color,subjects:d.subjects,curso:d.curso,seen:d.seen}); if(!d.photo) delete ps[i].photo; }
       CEVA.setProfiles(ps); openSec="perfiles"; renderConfig(); toast("Perfil guardado"); };
   }
   render(); show("edit");
@@ -578,7 +636,12 @@ function editSticker(id){
 
 /* ---------- arranque ---------- */
 const startP=new URLSearchParams(location.search).get("p");
-if(startP&&CEVA.profiles().some(p=>p.id===startP)) openProfile(startP); else renderHome();
+if(startP&&CEVA.profiles().some(p=>p.id===startP)){
+  /* al volver de un tema, se abre su asignatura (leer la URL antes de que openProfile la cambie) */
+  const qs=new URLSearchParams(location.search), f=qs.get("f"), S=f&&Object.values(SUBJECTS).find(x=>x.file===f);
+  openProfile(startP);
+  const a=qs.get("a")||(S&&S.name); if(a&&current.subjects.some(s=>SUBJECTS[s]&&SUBJECTS[s].name===a)) openArea(a);
+} else renderHome();
 </script>
 </body>
 </html>

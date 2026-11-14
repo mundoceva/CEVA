@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dr Thermo’s Lab · Science</title>
+<link rel="icon" type="image/png" href="icono.png">
+<link rel="apple-touch-icon" href="icono.png">
+<link href="fonts/fonts.css" rel="stylesheet">
+<script src="minijuegos.js"></script>
+<script src="premios.js"></script>
+<script src="extras.js"></script>
+<script src="ceva.js"></script>
+
+<style>
+:root{
+  --sky:#FFD9B0; --sky2:#FFF5EA; --ink:#3A1F0F; --soft:#7A4A2A;
+  --card:#FFFFFF; --cardInk:#3A1F0F; --btn:#FFF0E0; --line:#3A1F0F;
+  --accent:#E8590C; --sun:#FFD23F; --ok:#2E9E5B; --bad:#D6336C;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --sky:#3A1E10; --sky2:#1A0D06; --ink:#FFEBDD; --soft:#E0B898;
+    --card:#2E1A0E; --cardInk:#FFEBDD; --btn:#4A2A16; --line:#E8A877;
+    --ok:#46C27A; --bad:#FF6B9A; color-scheme:dark;
+  }
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%}
+body{margin:0;min-height:100%;color:var(--ink);font-family:"Nunito",system-ui,sans-serif;
+  background:linear-gradient(to bottom,var(--sky) 0,var(--sky2) 70%);display:flex;flex-direction:column}
+.floor{margin-top:auto;height:44px;flex:none;background:repeating-linear-gradient(90deg,#F4E3C8 0 44px,#E5CBA3 44px 88px);border-top:6px solid #C4572A}
+main{width:100%;max-width:760px;margin:0 auto;padding:18px 16px 28px;display:flex;flex-direction:column;gap:16px}
+h1{font-family:"Baloo 2","Nunito",sans-serif;font-weight:800;font-size:clamp(1.7rem,6.5vw,2.5rem);line-height:1;margin:0}
+.top{display:flex;align-items:center;gap:12px}
+.top .mascot{width:76px;flex:none}
+.top .sub{margin:4px 0 0;color:var(--soft);font-weight:800}
+.stats{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.pill{background:var(--card);color:var(--cardInk);border:3px solid var(--line);border-radius:999px;padding:4px 12px;font-weight:900;white-space:nowrap}
+.album{background:var(--card);color:var(--cardInk);border:3px solid var(--line);border-radius:20px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.album .row{display:flex;flex-wrap:wrap;gap:6px;font-size:1.7rem;line-height:1}
+.album .row span{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:var(--btn)}
+.album .row span.lock{font-size:1rem;opacity:.5}
+.album p{margin:0;font-weight:800;color:var(--soft);font-size:.95rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.card{display:flex;align-items:center;gap:12px;text-align:left;padding:12px;background:var(--card);color:var(--cardInk);
+  border:3px solid var(--line);border-radius:20px;box-shadow:0 5px 0 var(--line);cursor:pointer;font:inherit}
+.card:active{transform:translateY(3px);box-shadow:0 2px 0 var(--line)}
+.card .ic{width:52px;height:52px;flex:none;border-radius:16px;display:grid;place-items:center;font-size:1.8rem;background:var(--btn);border:3px solid var(--line)}
+.card b{display:block;font-size:1.08rem}
+.card small{display:block;opacity:.75;font-size:.88rem}
+.card .st{color:#E0A100;letter-spacing:2px;font-size:1rem}
+.card.locked{opacity:.55;cursor:default}
+button:focus-visible,.card:focus-visible{outline:4px solid var(--sun);outline-offset:3px}
+.bar{display:flex;align-items:center;gap:10px}
+.btn{font:inherit;font-weight:900;font-size:1.08rem;padding:12px 14px;border-radius:16px;border:3px solid var(--line);
+  background:var(--btn);color:var(--cardInk);box-shadow:0 4px 0 var(--line);cursor:pointer;touch-action:manipulation}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.btn.small{font-size:.92rem;padding:8px 12px}
+.btn.go{background:var(--accent);color:#fff}
+.btn.ok{background:var(--ok);color:#fff}
+.btn.bad{background:var(--bad);color:#fff}
+.btn:disabled{cursor:default}
+.progress{flex:1;height:16px;border-radius:99px;border:3px solid var(--line);background:var(--card);overflow:hidden}
+.progress span{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+.panel{background:var(--card);color:var(--cardInk);border:3px solid var(--line);border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.qhead{display:flex;align-items:center;gap:10px}
+.qlabel{font-weight:900;font-size:1.15rem;margin:0;flex:1}
+.speak{width:48px;height:48px;padding:0;font-size:1.4rem;flex:none}
+.display{display:flex;flex-direction:column;align-items:center;gap:10px}
+.big{font-size:clamp(3rem,16vw,5rem);line-height:1.1;text-align:center}
+.pic{display:inline-block;width:112px;height:112px}
+.pic svg{width:100%;height:100%;display:block}
+.name{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:1.5rem}
+.sentence{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:clamp(1.25rem,5.4vw,1.8rem);text-align:center;line-height:1.25}
+.lcd{font-family:"Press Start 2P",monospace;font-size:clamp(1.3rem,6vw,2rem);background:#CFE8C8;color:#17324D;border:4px solid #17324D;border-radius:14px;padding:14px 18px;letter-spacing:2px}
+.duo{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.duo .arrow{font-size:2.4rem;font-weight:900}
+.duo .it{display:flex;flex-direction:column;align-items:center;font-weight:900}
+.duo .it .e{font-size:3.2rem;line-height:1.1}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opts.one{grid-template-columns:1fr}
+.opts.pics .btn{font-size:2.6rem;padding:10px 6px;line-height:1.1}
+.opts.pics .btn .pic{width:70px;height:70px}
+.opts.pics .btn small{display:block;font-size:.85rem}
+.feedback{font-size:1.08rem;line-height:1.5;min-height:1.5em}
+.feedback b.y{color:var(--ok)} .feedback b.n{color:var(--bad)}
+.slots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.slot{width:40px;height:52px;border-bottom:4px solid var(--line);display:grid;place-items:end center;font-family:"Baloo 2",sans-serif;font-weight:800;font-size:2rem;line-height:1.2}
+.letters{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.letters .btn{width:54px;height:54px;padding:0;font-size:1.5rem;font-family:"Baloo 2",sans-serif}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}}
+.result{text-align:center;align-items:center}
+.result .stars{font-size:2.6rem;color:#E0A100;letter-spacing:6px}
+.result .score{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:2.4rem;line-height:1}
+.unlock{background:var(--btn);border:3px dashed var(--accent);border-radius:16px;padding:10px 14px;font-weight:900}
+.tip{margin:0;line-height:1.5;opacity:.85}
+.hero{background:linear-gradient(#FFE6C7,#FFF8EE);border:3px solid var(--line);border-radius:24px;overflow:hidden;margin-bottom:14px}
+.hero svg{display:block;width:100%;height:auto}
+.homebtn{align-self:flex-start;display:inline-block;font:inherit;font-weight:900;font-size:.95rem;padding:8px 14px;border-radius:999px;border:3px solid #3A1F0F;background:#fff;color:#3A1F0F;text-decoration:none;box-shadow:0 3px 0 #3A1F0F}
+[hidden]{display:none!important}
+@media (max-width:430px){ .opts:not(.pics){grid-template-columns:1fr} }
+@media (prefers-reduced-motion:reduce){.shake{animation:none}.progress span{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<a class="homebtn" href="index.html">⟵ Inicio</a>
+  <header class="top">
+    <svg class="mascot" viewBox="0 0 120 100" aria-hidden="true">
+      <rect x="46" y="6" width="28" height="62" rx="14" fill="#fff" stroke="#3A1F0F" stroke-width="3"/>
+      <circle cx="60" cy="78" r="17" fill="#E8590C" stroke="#3A1F0F" stroke-width="3"/>
+      <rect x="55" y="34" width="10" height="40" fill="#E8590C"/>
+      <path d="M66 18h6M66 28h6M66 38h6M66 48h6" stroke="#3A1F0F" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="54" cy="76" r="3.2" fill="#fff"/><circle cx="66" cy="76" r="3.2" fill="#fff"/>
+      <circle cx="54" cy="76" r="1.6" fill="#3A1F0F"/><circle cx="66" cy="76" r="1.6" fill="#3A1F0F"/>
+      <path d="M53 84q7 6 14 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+      <path d="M44 74 26 64M76 74l18-10" stroke="#3A1F0F" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="24" cy="63" r="5" fill="#FFD23F" stroke="#3A1F0F" stroke-width="2.5"/><circle cx="96" cy="63" r="5" fill="#FFD23F" stroke="#3A1F0F" stroke-width="2.5"/>
+    </svg>
+    <div>
+      <h1>Dr Thermo’s Lab</h1>
+      <p class="sub">Unit 3 · Heat and temperature</p>
+    </div>
+    <div class="stats">
+      <span class="pill" id="starTotal">⭐ 0/27</span>
+      <span class="pill" id="gemTotal">💎 0</span>
+    </div>
+  </header>
+
+  <!-- MENÚ -->
+  <section id="menu">
+    <div class="hero" aria-hidden="true">
+      <svg viewBox="0 0 360 120">
+        <circle cx="318" cy="30" r="18" fill="#FFD23F" stroke="#3A1F0F" stroke-width="2.5"/>
+        <path d="M318 4v-2M344 30h2M300 12l-3-3M336 12l3-3" stroke="#E8590C" stroke-width="3" stroke-linecap="round"/>
+        <g stroke="#3A1F0F" stroke-width="2.5" stroke-linejoin="round">
+          <path d="M20 102 52 52 84 102Z" fill="#7A4A2A"/><path d="M44 60q8-14 16 0" fill="#E8590C"/>
+          <path d="M46 44q-6-10 2-16M54 42q6-10-2-18" fill="none" stroke="#9E9E9E"/>
+          <rect x="102" y="56" width="52" height="46" rx="4" fill="#CFD8DC"/><rect x="110" y="70" width="36" height="24" rx="3" fill="#37474F"/><circle cx="114" cy="62" r="2.5" fill="#3A1F0F"/><circle cx="124" cy="62" r="2.5" fill="#3A1F0F"/>
+          <path d="M168 102l6-38h28l6 38Z" fill="#5C6BC0"/><path d="M178 64q10-10 20 0" fill="#3949AB"/><path d="M206 72q12 4 4 20" fill="none"/>
+          <path d="M184 52q-4-8 2-14M194 52q4-8-2-14" fill="none" stroke="#9E9E9E"/>
+          <rect x="232" y="44" width="14" height="50" rx="7" fill="#fff"/><circle cx="239" cy="98" r="10" fill="#E8590C"/><rect x="236" y="60" width="6" height="36" fill="#E8590C" stroke="none"/>
+          <path d="M268 102q8-34 30-28q8-22 24 0q20 0 20 28Z" fill="#FF8A3D"/><path d="M290 102q4-18 14-14q6-10 12 0q8 4 8 14Z" fill="#FFD23F"/>
+        </g>
+        <rect x="0" y="102" width="360" height="18" fill="#E5CBA3"/>
+        <text x="16" y="30" font-family="'Baloo 2',Nunito,sans-serif" font-weight="800" font-size="26" fill="#E8590C" stroke="#3A1F0F" stroke-width="1">Feel the heat!</text>
+      </svg>
+    </div>
+    <div class="album">
+      <p id="nextUnlock"></p>
+      <div class="row" id="stickers"></div>
+      <p id="prizeProg"></p>
+    </div>
+    <div id="exBtns"></div>
+    <div class="grid" id="cards" style="margin-top:14px"></div>
+    <div id="mgCards"></div>
+  </section>
+
+  <!-- JUEGO -->
+  <section id="play" hidden>
+    <div class="bar">
+      <button class="btn small" id="quit">Salir</button>
+      <div class="progress"><span id="prog"></span></div>
+      <span id="count" style="font-weight:900">1/8</span>
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <div class="qhead">
+        <p class="qlabel" id="qLabel"></p>
+        <button class="btn speak" id="speakBtn" aria-label="Escuchar">🔊</button>
+      </div>
+      <div class="display" id="disp"></div>
+      <div id="opts"></div>
+      <div class="feedback" id="fb" aria-live="polite"></div>
+      <button class="btn go" id="next" hidden>Next ➜</button>
+    </div>
+  </section>
+
+  <!-- RESULTADO -->
+  <section id="result" hidden>
+    <div class="panel result">
+      <div class="stars" id="rStars"></div>
+      <div class="score" id="rScore"></div>
+      <p id="rMsg" style="margin:0;font-size:1.15rem;font-weight:900"></p>
+      <div class="unlock" id="rUnlock" hidden></div>
+      <p class="tip" id="rTip"></p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+        <button class="btn go" id="prize" hidden>Jugar al premio</button>
+        <button class="btn go" id="again">Jugar otra vez</button>
+        <button class="btn" id="toMenu">Volver al laboratorio</button>
+      </div>
+    </div>
+  </section>
+</main>
+<div class="floor" aria-hidden="true"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const rnd = a => a[Math.floor(Math.random()*a.length)];
+const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const pick = (a,n) => shuffle(a).slice(0,n);
+
+/* ---------- VOZ ---------- */
+const canSpeak = !!(window.Android&&(Android.speakLang||Android.speak)) || "speechSynthesis" in window;
+const speak = t => CEVA.speak(t,"en-GB");
+if("speechSynthesis" in window){ try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>{}; }catch(e){} }
+
+/* ---------- DIBUJOS (objetos sin emoji) ---------- */
+const K='stroke="#3A1F0F" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"';
+const DRAW={
+  iron:`<path d="M6 46q4-20 26-22h20q6 0 6 6v16Z" fill="#4FC3F7" ${K}/><rect x="4" y="46" width="56" height="7" rx="3" fill="#B0BEC5" ${K}/><path d="M24 24q2-12 14-12h12q6 0 6 6v6" fill="none" ${K} stroke-width="5"/><circle cx="40" cy="36" r="3" fill="#E8590C"/>`,
+  hairdryer:`<path d="M10 18h30a14 14 0 0 1 0 28H10Z" fill="#455A64" ${K}/><circle cx="42" cy="32" r="7" fill="#90A4AE" ${K}/><path d="M28 46l-4 14h10l4-14" fill="#455A64" ${K}/><path d="M2 24h5M1 32h6M2 40h5" ${K}/>`,
+  heater:`<rect x="14" y="6" width="36" height="50" rx="6" fill="#ECEFF1" ${K}/><rect x="20" y="13" width="24" height="5" rx="2" fill="#FF7043"/><rect x="20" y="22" width="24" height="5" rx="2" fill="#FF7043"/><rect x="20" y="31" width="24" height="5" rx="2" fill="#FF7043"/><rect x="20" y="40" width="24" height="5" rx="2" fill="#FF7043"/><path d="M18 56v4M46 56v4" ${K}/>`,
+  oven:`<rect x="8" y="6" width="48" height="52" rx="4" fill="#CFD8DC" ${K}/><path d="M8 18h48" ${K}/><circle cx="18" cy="12" r="2.5" fill="#3A1F0F"/><circle cx="28" cy="12" r="2.5" fill="#3A1F0F"/><circle cx="38" cy="12" r="2.5" fill="#3A1F0F"/><path d="M18 24h28" ${K}/><rect x="15" y="29" width="34" height="22" rx="3" fill="#37474F" ${K}/><path d="M20 46q6-6 12 0" stroke="#FF7043" stroke-width="3" fill="none"/>`,
+  microwave:`<rect x="4" y="14" width="56" height="38" rx="4" fill="#ECEFF1" ${K}/><rect x="10" y="20" width="34" height="26" rx="3" fill="#455A64" ${K}/><rect x="48" y="20" width="8" height="6" rx="1" fill="#80CBC4"/><circle cx="50" cy="32" r="1.6" fill="#3A1F0F"/><circle cx="54" cy="32" r="1.6" fill="#3A1F0F"/><circle cx="50" cy="38" r="1.6" fill="#3A1F0F"/><circle cx="54" cy="38" r="1.6" fill="#3A1F0F"/><path d="M8 52v4M56 52v4" ${K}/>`,
+  kettle:`<path d="M16 54l4-30h24l4 30Z" fill="#5C6BC0" ${K}/><path d="M22 24q10-12 20 0" fill="#3949AB" ${K}/><path d="M18 36 6 26l3-3 11 6" fill="#5C6BC0" ${K}/><path d="M46 28q12 4 4 20" fill="none" ${K} stroke-width="5"/><rect x="12" y="54" width="40" height="5" rx="2" fill="#37474F" ${K}/>`,
+  radiator:`<rect x="6" y="12" width="8" height="42" rx="4" fill="#FAFAFA" ${K}/><rect x="16" y="12" width="8" height="42" rx="4" fill="#FAFAFA" ${K}/><rect x="26" y="12" width="8" height="42" rx="4" fill="#FAFAFA" ${K}/><rect x="36" y="12" width="8" height="42" rx="4" fill="#FAFAFA" ${K}/><rect x="46" y="12" width="8" height="42" rx="4" fill="#FAFAFA" ${K}/><path d="M54 48h6" ${K}/><path d="M18 8q2-4 0-6M30 8q2-4 0-6M42 8q2-4 0-6" stroke="#E8590C" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+  thermometer:`<rect x="26" y="4" width="12" height="42" rx="6" fill="#fff" ${K}/><circle cx="32" cy="52" r="9" fill="#E53935" ${K}/><rect x="30" y="20" width="4" height="30" fill="#E53935"/><path d="M38 12h5M38 20h5M38 28h5M38 36h5" ${K} stroke-width="2"/>`,
+  digital:`<path d="M8 50 46 12q6-6 10 0t0 10L18 60q-6 4-10 0t0-10Z" fill="#fff" ${K}/><rect x="24" y="28" width="16" height="9" rx="2" transform="rotate(-45 32 32)" fill="#CFE8C8" ${K} stroke-width="2"/><circle cx="50" cy="16" r="5" fill="#1E88E5" ${K} stroke-width="2"/>`,
+  solarpanel:`<path d="M8 42l10-26h40l-10 26Z" fill="#1E3A8A" ${K}/><path d="M21 16l-10 26M34 16l-9 26M46 16l-9 26M13 29h43" stroke="#90CAF9" stroke-width="2"/><path d="M33 42v14M24 56h18" ${K}/>`,
+  spoon:`<ellipse cx="20" cy="18" rx="10" ry="13" fill="#B0BEC5" ${K}/><path d="M26 28 52 58" ${K} stroke-width="6"/><path d="M26 28 52 58" stroke="#B0BEC5" stroke-width="2"/>`,
+  woodspoon:`<ellipse cx="20" cy="18" rx="10" ry="13" fill="#C68B4E" ${K}/><path d="M26 28 52 58" ${K} stroke-width="6"/><path d="M26 28 52 58" stroke="#C68B4E" stroke-width="2"/>`,
+  foil:`<path d="M8 20h36l12 8v20H20L8 40Z" fill="#CFD8DC" ${K}/><path d="M44 20v8h12M14 26l8 4M26 34l10-4M20 44l14-6" stroke="#90A4AE" stroke-width="2" fill="none"/>`,
+  pan:`<ellipse cx="26" cy="34" rx="20" ry="14" fill="#455A64" ${K}/><ellipse cx="26" cy="32" rx="14" ry="9" fill="#78909C"/><path d="M44 30h16" ${K} stroke-width="6"/>`
+};
+const svg = n => `<svg viewBox="0 0 64 64" aria-hidden="true">${DRAW[n]}</svg>`;
+/* cosa → [dibujo HTML, español] */
+const pic = (e) => DRAW[e]?`<span class="pic">${svg(e)}</span>`:`<span class="big">${e}</span>`;
+const smallPic = (e) => DRAW[e]?`<span class="pic" style="width:56px;height:56px">${svg(e)}</span>`:`<span style="font-size:2.4rem">${e}</span>`;
+
+/* ---------- DATOS · Unit 3 Heat and temperature ---------- */
+const SOURCES={
+  "the Sun":["☀️","n","el Sol"], "volcano":["🌋","n","el volcán"], "hot spring":["♨️","n","la fuente termal"], "hot sand":["🏜️","n","la arena caliente"],
+  "iron":["iron","a","la plancha"], "heater":["heater","a","la estufa"], "oven":["oven","a","el horno"], "hairdryer":["hairdryer","a","el secador"],
+  "light bulb":["💡","a","la bombilla"], "microwave":["microwave","a","el microondas"], "kettle":["kettle","a","el hervidor"], "radiator":["radiator","a","el radiador"]
+};
+const SRC=Object.keys(SOURCES);
+const KIND={n:"natural",a:"artificial"};
+
+/* Heat or temperature? (frases del libro y alguna más) */
+const HT=[
+  ["___ is a form of energy.","Heat"],["___ tells us how hot something is.","Temperature"],["___ is something we measure.","Temperature"],
+  ["There are natural and artificial sources of ___.","heat"],["Things become hotter when they gain ___.","heat"],["Things become colder when they lose ___.","heat"],
+  ["___ makes things warm or hot.","Heat"],["We measure ___ with a thermometer.","temperature"],["The Sun gives us light and ___.","heat"],
+  ["Our normal body ___ is around 37 °C.","temperature"],["The air ___ is on the weather forecast.","temperature"]
+];
+
+/* Temperaturas */
+const ONES=["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"];
+const TENS=["","","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"];
+function num(n){
+  if(n<0) return "minus "+num(-n);
+  if(n<20) return ONES[n];
+  if(n<100) return TENS[Math.floor(n/10)]+(n%10?"-"+ONES[n%10]:"");
+  return "one hundred"+(n%100?" and "+num(n%100):"");
+}
+const tempWords=(v,u)=>{ const i=Math.trunc(v), d=Math.round(Math.abs(v-i)*10); return `${num(i)}${d?" point "+ONES[d]:""} degrees ${u==="C"?"Celsius":"Fahrenheit"}`; };
+const tempTxt=(v,u)=>`${String(v)} °${u}`;
+const FACTS_T=[
+  ["Our normal body temperature is around…","37 °C",["37 °C","73 °C","3.7 °C","100 °C"],"Lo normal es unos 37 °C. Si tienes fiebre, sube."],
+  ["Water becomes ice at…","0 °C",["0 °C","10 °C","37 °C","100 °C"],"El agua se congela (se hace hielo) a 0 °C."],
+  ["Water boils at…","100 °C",["100 °C","0 °C","37 °C","50 °C"],"El agua hierve a 100 °C."],
+  ["Most countries measure temperature in…","degrees Celsius",["degrees Celsius","degrees Fahrenheit"],"Casi todos los países usan grados Celsius (°C). Unos pocos, como Estados Unidos, usan Fahrenheit (°F)."],
+  ["The United States of America uses…","degrees Fahrenheit",["degrees Fahrenheit","degrees Celsius"],"Estados Unidos es uno de los pocos países que usan grados Fahrenheit (°F)."],
+  ["We measure temperature with a…","thermometer",["thermometer","kettle","heater","microwave"],"El termómetro mide la temperatura."]
+];
+
+/* Cambios de estado */
+const STATES=[
+  ["🧊","ice (solid)","💧","water (liquid)","melting","Sólido → líquido = melting (fundirse)."],
+  ["💧","water (liquid)","☁️","water vapour (gas)","evaporation","Líquido → gas = evaporation (evaporación)."],
+  ["🍦","ice cream (solid)","🥛","ice cream (liquid)","melting","El helado al sol pasa de sólido a líquido: melting."],
+  ["🍫","chocolate (solid)","🫕","chocolate (liquid)","melting","El chocolate al calentarlo se funde: melting."],
+  ["🧈","butter (solid)","🫗","butter (liquid)","melting","La mantequilla en la sartén se funde: melting."],
+  ["🫖","boiling water","☁️","steam (gas)","evaporation","Cuando el agua hierve se convierte en vapor: evaporation."],
+  ["👕","wet clothes","☀️","dry clothes","evaporation","El agua de la ropa mojada se evapora al sol."],
+  ["🌊","water in a puddle","☁️","water vapour","evaporation","El agua del charco se evapora con el calor del sol."]
+];
+const REVERSIBLE=[
+  ["melting chocolate","🍫",true],["melting ice","🧊",true],["melting butter","🧈",true],["freezing water","❄️",true],
+  ["cooking an egg","🍳",false],["baking a cake","🎂",false],["toasting bread","🍞",false],["burning wood","🔥",false]
+];
+
+/* Puntos de fusión (°C) */
+const MELT=[["butter","🧈",36],["chocolate","🍫",40],["sugar","🍬",186],["aluminium","foil",660],["silver","🥈",962],["gold","🥇",1064],["iron","pan",1538]];
+
+/* Conductores y aislantes */
+const MAT={
+  "metal spoon":["spoon","c","metal"], "radiator":["radiator","c","metal"], "frying pan":["pan","c","metal (iron)"], "aluminium foil":["foil","c","metal (aluminium)"],
+  "gold ring":["💍","c","metal (gold)"], "silver coin":["🪙","c","metal (silver)"], "keys":["🔑","c","metal"],
+  "wooden spoon":["woodspoon","i","wood"], "pencil":["✏️","i","wood"], "plastic bucket":["🪣","i","plastic"], "wool socks":["🧦","i","wool"],
+  "rubber boots":["🥾","i","rubber"], "wool scarf":["🧣","i","wool"], "wooden table":["🪵","i","wood"]
+};
+const MATS=Object.keys(MAT);
+const matSay=(t,k)=>/(socks|keys|boots)$/.test(t)?`${t[0].toUpperCase()+t.slice(1)} are thermal ${KMAT[k]}s.`:`The ${t} is a thermal ${KMAT[k]}.`;
+const KMAT={c:"conductor",i:"insulator"};
+
+/* Energía y la Tierra */
+const ENERGY=[
+  {q:"The most important source of heat energy is…",a:"the Sun",o:["the Sun","fire","the oven","the radiator"],e:"El Sol calienta las rocas, el suelo y el agua de lagos y océanos. ¡Sin él no habría vida!"},
+  {q:"Solar panels get energy from…",a:"sunlight",o:["sunlight","the wind","fire","water"],e:"Las placas solares (solar panels) usan la luz del sol para hacer electricidad."},
+  {q:"Geothermal energy is heat that comes from…",a:"inside the Earth",o:["inside the Earth","the Moon","water","the wind"],e:"Geo = Tierra. Es el calor del interior de la Tierra. Calienta las fuentes termales (hot springs)."},
+  {q:"Solar energy is very clean. It…",a:"doesn’t pollute the atmosphere",o:["doesn’t pollute the atmosphere","pollutes the atmosphere"],e:"La energía solar es limpia y sostenible (sustainable): no contamina."},
+  {q:"We can use the heat from fire for…",a:"cooking food and keeping warm",o:["cooking food and keeping warm","measuring temperature"],e:"El fuego sirve para cocinar y para calentarnos."},
+  {q:"Countries near the Equator have got hot weather because…",a:"the Sun is always directly above them",o:["the Sun is always directly above them","they are far from the Sun","they have got four seasons"],e:"Cerca del Ecuador el Sol está siempre justo encima: no hay estaciones y siempre hace calor."},
+  {q:"The Equator is…",a:"an imaginary line around the middle of the Earth",o:["an imaginary line around the middle of the Earth","a hot country","a very big river"],e:"El Ecuador es una línea imaginaria que rodea la Tierra por la mitad."},
+  {q:"The Earth isn’t straight on its axis. It’s…",a:"tilted",o:["tilted","flat","square"],e:"La Tierra está inclinada (tilted). Por eso hay estaciones en los hemisferios norte y sur."},
+  {q:"In summer, countries are tilted… the Sun.",a:"towards",o:["towards","away from"],e:"En verano estamos inclinados hacia el Sol: más luz, días más largos y más calor."},
+  {q:"In winter, the days are…",a:"shorter",o:["shorter","longer"],e:"En invierno estamos inclinados lejos del Sol: menos luz, días más cortos y más frío."},
+  {q:"Spain has got many…",a:"solar energy farms",o:["solar energy farms","volcanoes","hot deserts"],e:"¡Wow! España tiene muchos parques de energía solar."}
+];
+const TF=[
+  ["Solar energy pollutes the atmosphere.",false,"Solar energy doesn’t pollute the atmosphere."],
+  ["We can use the heat from fire for cooking.",true],
+  ["Geothermal energy comes from water.",false,"Geothermal energy comes from inside the Earth."],
+  ["The most important source of heat energy is fire.",false,"The most important source of heat energy is the Sun."],
+  ["Solar energy is sustainable.",true],
+  ["Near the Equator there are no seasons.",true],
+  ["In winter the days are longer.",false,"In winter the days are shorter."],
+  ["Metals are good thermal conductors.",true],
+  ["Wood is a good thermal conductor.",false,"Wood is a thermal insulator."]
+];
+
+const SPELL=["heat","oven","metal","plastic","celsius","melt","fire","warm","wood","iron","sun","wool"];
+const SPELL_PIC={heat:"🔥",oven:"oven",metal:"spoon",plastic:"🪣",celsius:"thermometer",melt:"🧊",fire:"🔥",warm:"🧣",wood:"🪵",iron:"iron",sun:"☀️",wool:"🧶"};
+const SPELL_ES={heat:"calor",oven:"horno",metal:"metal",plastic:"plástico",celsius:"Celsius (grados)",melt:"fundirse",fire:"fuego",warm:"templado, calentito",wood:"madera",iron:"plancha / hierro",sun:"sol",wool:"lana"};
+
+const say = t => `<button class="btn go" data-say="${t}" style="font-size:2rem;padding:16px 28px">🔊 Listen</button>`;
+const opt = a => a.map(x=>({html:x,val:x}));
+
+/* ---------- GENERADORES ---------- */
+const GEN={
+  sources(){
+    if(Math.random()<.25){ /* ¿cuál es natural / artificial? */
+      const want=Math.random()<.5?"n":"a", good=rnd(SRC.filter(s=>SOURCES[s][1]===want)), bad=pick(SRC.filter(s=>SOURCES[s][1]!==want),3);
+      return {key:"sx"+good,label:`Which one is ${KIND[want]}? ¿Cuál es ${want==="n"?"natural":"artificial (hecha por personas)"}?`,pics:true,ask:`Which one is ${KIND[want]}?`,
+        display:`<div class="sentence">Which source of heat is <u>${KIND[want]}</u>?</div>`,
+        options:shuffle([good,...bad]).map(o=>({html:`${smallPic(SOURCES[o][0])}<small>${o}</small>`,val:o})),answer:good,say:`${good}: ${KIND[want]}.`,
+        explain:`<b>${good}</b> (${SOURCES[good][2]}) es ${want==="n"?"natural: no la ha hecho nadie":"artificial: la han fabricado las personas"}.`};
+    }
+    const t=rnd(SRC), k=SOURCES[t][1];
+    return {key:"s"+t,label:"Natural or artificial? ¿Natural o artificial?",ask:t,
+      display:`${pic(SOURCES[t][0])}<span class="name">${t}</span>`,
+      options:[{html:"🌿 natural",val:"n"},{html:"🏭 artificial (man-made)",val:"a"}],answer:k,say:`${t}: ${KIND[k]}.`,
+      explain:`${t} = ${SOURCES[t][2]}. ${k==="n"?"Es natural: está en la naturaleza.":"Es artificial: la han hecho las personas (man-made)."}`};
+  },
+  heattemp(){
+    const [s,a]=rnd(HT), A=a.toLowerCase(), cap=s.startsWith("___");
+    const full=s.replace("___",a);
+    return {key:"h"+s,label:"Heat or temperature? Completa la frase.",display:`<div class="sentence">${s.replace("___","<u>&nbsp;?&nbsp;</u>")}</div>`,
+      options:cap?opt(["Heat","Temperature"]):opt(["heat","temperature"]),answer:a,say:full,
+      explain:A==="heat"?`<b>Heat</b> (calor) es una forma de energía: hace que las cosas estén calientes.`:`<b>Temperature</b> (temperatura) es lo que medimos: nos dice lo caliente que está algo.`};
+  },
+  measure(){
+    const r=Math.random();
+    if(r<.3){ /* escucha la temperatura */
+      const u=rnd(["C","F"]), v=rnd([21,25,32,37,42,62,12,15,98]), d=Math.random()<.3?.5:0, val=v+d, sw=String(v).split("").reverse().join("");
+      const alts=[tempTxt(val,u==="C"?"F":"C"),tempTxt(+sw===v?v+10:+sw+d,u),d?tempTxt(v,u):tempTxt(v/10,u)];
+      const a=tempTxt(val,u);
+      return {key:"ml"+a,label:canSpeak?"Listen! ¿Qué temperatura oyes?":"Read! ¿Qué temperatura es?",display:canSpeak?say(tempWords(val,u)):`<div class="sentence">${tempWords(val,u)}</div>`,
+        autoSay:true,ask:tempWords(val,u),options:shuffle([...new Set([a,...alts])]).slice(0,4).map(x=>({html:x,val:x})),answer:a,say:tempWords(val,u),
+        explain:`${a} = ${tempWords(val,u)}. C = Celsius · F = Fahrenheit. El punto se dice <b>point</b>.`};
+    }
+    if(r<.55){ /* lee el termómetro digital */
+      const u=Math.random()<.75?"C":"F", v=u==="C"?rnd([20,21,25,27,33,36,37,38,40]):rnd([62,68,77,98]), d=rnd([0,0,5,6,2]), val=d?+(v+"."+d):v;
+      const a=tempWords(val,u), wrong=[tempWords(val,u==="C"?"F":"C"),tempWords(d?v:val+1,u),tempWords(v+10,u)];
+      return {key:"md"+val+u,label:"Read the thermometer. ¿Cómo se lee?",one:true,display:`<span class="lcd">${val} °${u}</span>`,ask:a,
+        options:shuffle([a,...new Set(wrong)]).map(x=>({html:x,val:x})),answer:a,say:a,explain:`${val} °${u} = “${a}”.`};
+    }
+    if(r<.75){ /* objeto que mide */
+      const good=rnd(["thermometer","digital"]), bad=pick(["kettle","heater","microwave","oven","iron"],3);
+      const NM={thermometer:"thermometer",digital:"digital thermometer",kettle:"kettle",heater:"heater",microwave:"microwave",oven:"oven",iron:"iron"};
+      return {key:"mo"+good+bad.join(),label:"Which one can we use to measure temperature?",pics:true,ask:"Which one can we use to measure temperature?",
+        display:`<div class="sentence">Which object measures temperature?</div>`,
+        options:shuffle([good,...bad]).map(o=>({html:`${smallPic(o)}<small>${NM[o]}</small>`,val:o})),answer:good,say:"We measure temperature with a thermometer.",
+        explain:`Medimos la temperatura con un <b>thermometer</b> (termómetro). Unos tienen un tubo con líquido; otros son digitales y lo enseñan en una pantallita.`};
+    }
+    const [q,a,o,e]=rnd(FACTS_T);
+    return {key:"mf"+q,label:"Choose. Elige la respuesta.",display:`<div class="sentence">${q}</div>`,ask:q,one:o.length<3,
+      options:shuffle(o).map(x=>({html:x,val:x})),answer:a,say:`${q.replace("…","")} ${a}.`,explain:e};
+  },
+  states(){
+    if(Math.random()<.65){
+      const [e1,n1,e2,n2,a,ex]=rnd(STATES);
+      return {key:"st"+n1,label:"Melting or evaporation? ¿Qué cambio es?",ask:`${n1} to ${n2}`,
+        display:`<div class="duo"><span class="it"><span class="e">${e1}</span>${n1}</span><span class="arrow">➜</span><span class="it"><span class="e">${e2}</span>${n2}</span></div><div class="tag" style="font-weight:900">🔥 heat</div>`,
+        options:opt(["melting","evaporation"]),answer:a,say:a,explain:ex};
+    }
+    const [t,e,rev]=rnd(REVERSIBLE), a=rev?"reversible":"irreversible";
+    return {key:"rv"+t,label:"Reversible or irreversible? ¿Se puede deshacer?",ask:t,display:`<span class="big">${e}</span><span class="name">${t}</span>`,
+      options:opt(["reversible","irreversible"]),answer:a,say:`${t} is ${a}.`,
+      explain:rev?"Es <b>reversible</b>: si lo enfrías vuelve a estar como antes (cambio físico).":"Es <b>irreversible</b>: no vuelve a ser como antes. Es un cambio químico (chemical change)."};
+  },
+  melt(){
+    if(Math.random()<.2){
+      const w=Math.random()<.5;
+      return {key:"mw"+w,label:"Water… Elige la temperatura.",display:`<span class="big">${w?"🧊":"♨️"}</span><div class="sentence">${w?"Water becomes ice at…":"Water boils at…"}</div>`,
+        options:opt(["0 °C","36 °C","100 °C","962 °C"]),answer:w?"0 °C":"100 °C",say:w?"Water becomes ice at zero degrees Celsius.":"Water boils at one hundred degrees Celsius.",
+        explain:"El agua se hace hielo a 0 °C y hierve a 100 °C."};
+    }
+    const set=pick(MELT,3), low=Math.random()<.6, a=(low?[...set].sort((x,y)=>x[2]-y[2]):[...set].sort((x,y)=>y[2]-x[2]))[0];
+    return {key:"m"+set.map(x=>x[0]).join()+low,label:low?"Which one melts first? (lowest melting point)":"Which one has got the highest melting point?",pics:true,
+      ask:low?"Which one has got the lowest melting point?":"Which one has got the highest melting point?",
+      display:`<div class="sentence">${low?"🔥 Which one melts <u>first</u>?":"Which one is the <u>hardest</u> to melt?"}</div>`,
+      options:set.map(m=>({html:`${smallPic(m[1])}<small>${m[0]}</small>`,val:m[0]})),answer:a[0],say:`${a[0]}: ${a[2]} degrees Celsius.`,
+      explain:`Puntos de fusión: ${[...set].sort((x,y)=>x[2]-y[2]).map(m=>`${m[0]} ${m[2]} °C`).join(" · ")}. ${low?"El más bajo se funde antes.":"Los metales tienen puntos de fusión muy altos."}`};
+  },
+  cond(){
+    if(Math.random()<.3){
+      const want=Math.random()<.5?"c":"i", good=rnd(MATS.filter(m=>MAT[m][1]===want)), bad=pick(MATS.filter(m=>MAT[m][1]!==want),3);
+      return {key:"cx"+good,label:`Which one is a thermal ${KMAT[want]}?`,pics:true,ask:`Which one is a thermal ${KMAT[want]}?`,
+        display:`<div class="sentence">Find the thermal <u>${KMAT[want]}</u>.</div>`,
+        options:shuffle([good,...bad]).map(o=>({html:`${smallPic(MAT[o][0])}<small>${o}</small>`,val:o})),answer:good,say:matSay(good,want),
+        explain:`${good}: ${MAT[good][2]} → ${want==="c"?"se calienta rápido (conductor)":"no se calienta fácilmente (insulator)"}.`};
+    }
+    const t=rnd(MATS), k=MAT[t][1];
+    return {key:"c"+t,label:"Thermal conductor or insulator?",ask:t,display:`${pic(MAT[t][0])}<span class="name">${t}</span>`,
+      options:[{html:"🔥 conductor",val:"c"},{html:"🧤 insulator",val:"i"}],answer:k,say:matSay(t,k),
+      explain:`Está hecho de <b>${MAT[t][2]}</b>. ${k==="c"?"Los metales se calientan rápido: son conductores (conductors).":"Madera, plástico, goma y lana no se calientan fácilmente: son aislantes (insulators)."}`};
+  },
+  energy(){
+    if(Math.random()<.4){
+      const [s,v,fix]=rnd(TF), a=v?"True":"False";
+      return {key:"tf"+s,label:"True or false? ¿Verdadero o falso?",ask:s,display:`<div class="sentence">${s}</div>`,
+        options:opt(["True","False"]),answer:a,say:v?s:fix,explain:v?"Es verdad.":`Es falso. Lo correcto: <b>${fix}</b>`};
+    }
+    const E=rnd(ENERGY);
+    return {key:"e"+E.q,label:"Choose. Elige la respuesta correcta.",ask:E.q,display:`<div class="sentence">${E.q}</div>`,one:true,
+      options:shuffle(E.o).map(x=>({html:x,val:x})),answer:E.a,say:E.q.replace("…"," "+E.a).replace(/\s+/g," ").replace(/ \./,".")+(E.q.endsWith("…")?".":""),explain:E.e};
+  }
+};
+
+const GAMES=[
+  {id:"sources", ic:"☀️",name:"Sources of heat",topic:"natural or artificial"},
+  {id:"heattemp",ic:"🔥",name:"Heat or temperature?",topic:"Energía o lo que medimos"},
+  {id:"measure", ic:"🌡️",name:"Thermometers",topic:"°C · °F · read and listen"},
+  {id:"states",  ic:"🧊",name:"Melting & evaporation",topic:"States of matter"},
+  {id:"melt",    ic:"🍫",name:"Melting points",topic:"butter, sugar, gold…"},
+  {id:"cond",    ic:"🥄",name:"Conductors & insulators",topic:"metal · wood · plastic · wool"},
+  {id:"energy",  ic:"🌍",name:"Energy & the Sun",topic:"solar · geothermal · Equator"},
+  {id:"spell",   ic:"🔤",name:"Listen & spell",topic:"Escucha y escribe"},
+  {id:"final",   ic:"🏆",name:"Lab challenge",topic:"Reto final: de todo"}
+];
+const TIPS={
+  sources:"Natural = de la naturaleza (Sun, volcano, hot spring). Artificial = hecho por personas (oven, iron, heater).",
+  heattemp:"Heat = energía (calor). Temperature = lo que medimos con el termómetro.",
+  measure:"25 °C = twenty-five degrees Celsius. 25.5 = twenty-five point five.",
+  states:"Melting: sólido → líquido. Evaporation: líquido → gas. Cocinar un huevo es irreversible.",
+  melt:"Mantequilla y chocolate se funden con poco calor. Los metales necesitan muchísimo.",
+  cond:"Metal = conductor. Wood, plastic, rubber y wool = insulators.",
+  energy:"El Sol es la fuente de calor más importante. Geothermal = calor del interior de la Tierra.",
+  spell:"Escucha la palabra y toca las letras en orden.",
+  final:"Si fallas algo, vuelve a ese juego y repásalo."
+};
+
+/* ---------- HITOS ---------- */
+const MILES=[3,6,9,12,15,18,21,24,27].map((at,i)=>({at,st:["☀️","🔥","🌡️","🧊","🍫","🥄","🌋","♨️","👑"][i]}));
+
+/* ---------- ESTADO ---------- */
+const KEY="heatScience4_v1_"+PROFILE;
+let save={best:{},perfect:{}};
+try{ const s=JSON.parse(STORE.get(KEY)); if(s) save=Object.assign(save,s); }catch(e){}
+const persist=()=>STORE.set(KEY,JSON.stringify(save));
+const totalStars=()=>GAMES.reduce((a,g)=>a+(save.best[g.id]||0),0);
+const isOpen=i=>i===0||(save.best[GAMES[i-1].id]||0)>=1;
+const starStr=n=>"★".repeat(n)+"☆".repeat(3-n);
+const starsFor=(s,t)=>{const p=s/t;return p>=.9?3:p>=.7?2:p>=.4?1:0;};
+
+function renderMenu(){
+  const tot=totalStars();
+  $("starTotal").textContent=`⭐ ${tot}/27`;
+  $("gemTotal").textContent=`💎 ${CEVA.wallet(PROFILE)}`;
+  $("stickers").innerHTML=MILES.map(m=>tot>=m.at?`<span>${m.st}</span>`:`<span class="lock">🔒</span>`).join("");
+  const nx=MILES.find(m=>tot<m.at);
+  $("nextUnlock").textContent=nx?`Álbum del laboratorio · Siguiente pegatina con ${nx.at}⭐ (te faltan ${nx.at-tot})`:"Álbum completo. ¡Eres un experto del calor!";
+  const done=GAMES.filter(g=>save.perfect[g.id]).length;
+  $("prizeProg").textContent=`Premio: ${done}/${GAMES.length} juegos sin fallos`+(save.vueltas?` · Vueltas completadas: ${save.vueltas}`:"")+` · Cada estrella = 1 💎 · Al terminar, ¡eliges tú el juego!`;
+  const box=$("cards"); box.innerHTML="";
+  GAMES.forEach((g,i)=>{
+    const open=isOpen(i), b=document.createElement("button");
+    b.className="card"+(open?"":" locked");
+    b.innerHTML=`<span class="ic">${open?g.ic:"🔒"}</span><span><b>${g.name}</b><small>${open?g.topic:"Consigue 1⭐ en el anterior"}</small>
+      <span class="st">${starStr(save.best[g.id]||0)}${save.perfect[g.id]?" ✔":""}</span></span>`;
+    if(open) b.onclick=()=>start(g.id); else b.disabled=true;
+    box.appendChild(b);
+  });
+  MiniGames.renderCards($("mgCards"));
+  if(window.Extras) Extras.renderButtons($("exBtns"));
+}
+function show(id){ ["menu","play","result"].forEach(s=>$(s).hidden=s!==id); window.scrollTo(0,0); }
+
+/* ---------- PARTIDA ---------- */
+let S=null;
+function buildQs(kinds,n){
+  const used=new Set(), qs=[]; let tries=0;
+  while(qs.length<n&&tries<500){ tries++; const q=GEN[rnd(kinds)](); if(used.has(q.key)) continue; used.add(q.key); qs.push(q); }
+  while(qs.length<n) qs.push(GEN[rnd(kinds)]());
+  return qs;
+}
+function start(id){
+  S={id,i:0,score:0,answered:false,before:totalStars()};
+  if(id==="spell"){ S.words=pick(SPELL,5); S.total=5; }
+  else if(id==="final"){ S.qs=buildQs(["sources","heattemp","measure","states","melt","cond","energy"],10); S.total=10; }
+  else { S.qs=buildQs([id],8); S.total=8; }
+  show("play"); render();
+}
+function render(){
+  $("count").textContent=`${S.i+1}/${S.total}`;
+  $("prog").style.width=(S.i/S.total*100)+"%";
+  $("fb").innerHTML=""; $("next").hidden=true; S.answered=false;
+  if(S.id==="spell") return renderSpell();
+  const q=S.qs[S.i];
+  $("qLabel").textContent=q.label;
+  $("speakBtn").hidden=!canSpeak||!q.ask; $("speakBtn").onclick=()=>speak(q.ask);
+  $("disp").innerHTML=q.display;
+  $("disp").querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>speak(b.dataset.say));
+  const o=$("opts"); o.innerHTML="";
+  o.className="opts"+(q.pics?" pics":"")+(q.one?" one":"");
+  q.options.forEach(op=>{ const b=document.createElement("button"); b.className="btn"; b.innerHTML=op.html; b.dataset.val=op.val; b.onclick=()=>choose(op.val,b); o.appendChild(b); });
+  if(q.autoSay) speak(q.say);
+}
+function choose(val,btn){
+  if(S.answered) return; S.answered=true;
+  const q=S.qs[S.i], ok=val===q.answer;
+  [...$("opts").children].forEach(b=>{ b.disabled=true; if(b.dataset.val===q.answer) b.classList.add("ok"); });
+  if(!ok) btn.classList.add("bad","shake"); else S.score++;
+  $("fb").innerHTML=(ok?'<b class="y">Hot stuff! 🔥</b> ':'<b class="n">Oops!</b> ')+q.explain;
+  speak(q.say);
+  $("next").hidden=false; $("next").focus();
+}
+
+/* escucha y deletrea */
+function renderSpell(){
+  const w=S.words[S.i]; S.pos=0; S.miss=false;
+  $("qLabel").textContent="Listen and spell. Escucha y toca las letras en orden.";
+  $("speakBtn").hidden=!canSpeak; $("speakBtn").onclick=()=>speak(w);
+  $("disp").innerHTML=`${pic(SPELL_PIC[w])}${canSpeak?say(w):`<div class="sentence">${SPELL_ES[w]}</div>`}<div class="slots" id="slots">${w.split("").map(()=>`<span class="slot"></span>`).join("")}</div>`;
+  $("disp").querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>speak(b.dataset.say));
+  const o=$("opts"); o.className="letters";
+  let letters=shuffle(w.split("")); if(letters.join("")===w&&w.length>1) letters=shuffle(letters);
+  o.innerHTML=letters.map(l=>`<button class="btn" data-l="${l}">${l}</button>`).join("");
+  o.querySelectorAll("button").forEach(b=>b.onclick=()=>tapLetter(b));
+  speak(w);
+}
+function tapLetter(b){
+  if(S.answered||b.disabled) return;
+  const w=S.words[S.i];
+  if(b.dataset.l===w[S.pos]){
+    $("slots").children[S.pos].textContent=b.dataset.l; b.disabled=true; b.style.visibility="hidden"; S.pos++;
+    if(S.pos===w.length){
+      S.answered=true; if(!S.miss) S.score++;
+      $("fb").innerHTML=(!S.miss?'<b class="y">Amazing!</b> ':'<b class="y">Well done!</b> ')+`“${w}” = ${SPELL_ES[w]}.`;
+      speak(w); $("next").hidden=false; $("next").focus();
+    }
+  } else {
+    S.miss=true; b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake","bad");
+    setTimeout(()=>b.classList.remove("bad"),450);
+    $("fb").innerHTML='<b class="n">Esa no va ahora.</b> Pulsa 🔊 y escucha otra vez.';
+  }
+}
+
+function next(){ S.i++; if(S.i>=S.total) return finish(); render(); }
+function finish(){
+  $("prog").style.width="100%";
+  const st=starsFor(S.score,S.total);
+  save.best[S.id]=Math.max(save.best[S.id]||0,st);
+  save.gems=(save.gems||0)+st;
+  const perfect=S.score===S.total; if(perfect) save.perfect[S.id]=true;
+  persist();
+  $("rStars").textContent=starStr(st);
+  $("rScore").textContent=`${S.score}/${S.total}`;
+  const after=totalStars(), news=MILES.filter(m=>S.before<m.at&&after>=m.at);
+  const done=GAMES.filter(g=>save.perfect[g.id]).length, all=done===GAMES.length;
+  $("rMsg").textContent= all?"¡Todos los juegos sin fallos! Te has ganado el premio."
+    : perfect?`¡Todo perfecto! Llevas ${done} de ${GAMES.length} juegos sin fallos.`
+    : st===3?"¡Genial! Casi perfecto.":st===2?"¡Muy bien!":st===1?"¡Bien! Sigue practicando.":"Vuelve a intentarlo, ¡tú puedes!";
+  const unl=news.map(m=>`${m.st} ¡Nueva pegatina para tu álbum!`).join("<br>");
+  $("rUnlock").hidden=!unl; $("rUnlock").innerHTML=unl;
+  $("rTip").textContent=(st?`Ganas ${st} 💎. `:"Sin estrellas no hay gemas esta vez. ")+"Truco: "+TIPS[S.id];
+  $("gemTotal").textContent=`💎 ${CEVA.wallet(PROFILE)}`;
+  $("prize").hidden=!all;
+  $("prize").textContent="🎁 Elegir juego de premio";
+  show("result"); $("again").focus();
+}
+$("next").onclick=next;
+$("quit").onclick=()=>{ renderMenu(); show("menu"); };
+$("again").onclick=()=>start(S.id);
+$("toMenu").onclick=()=>{ renderMenu(); show("menu"); };
+$("prize").onclick=()=>Premios.choose(k=>{ save.perfect={}; persist(); Premios.start(k,()=>{ save.best={}; save.perfect={}; save.vueltas=(save.vueltas||0)+1; persist(); renderMenu(); show("menu"); }); });
+
+/* ---------- MINIJUEGOS ---------- */
+const VOC=[
+  ...SRC.filter(s=>s!=="the Sun").map(w=>({w,p:SOURCES[w][0]})), {w:"sun",p:"☀️"},
+  ...MATS.map(w=>({w,p:MAT[w][0]})),
+  {w:"thermometer",p:"thermometer"},{w:"ice",p:"🧊"},{w:"fire",p:"🔥"},{w:"solar panel",p:"solarpanel"}
+];
+const W_SRC=["sun","volcano","fire","oven","iron","heater"], W_MAT=["metal","wood","plastic","rubber","wool","gold"], W_HEAT=["heat","melt","warm","hot","celsius","energy"];
+MiniGames.init({
+  lang:"en-GB",
+  theme:{bg:"#FFF5EA",card:"#FFFFFF",ink:"#3A1F0F",line:"#3A1F0F",accent:"#E8590C",soft:"#FFE6CC",rad:"16px",head:'"Baloo 2",sans-serif'},
+  getSave:()=>save, persist,
+  addGems(n){ save.gems=(save.gems||0)+n; persist(); },
+  onChange:()=>renderMenu(),
+  hang:()=>VOC.map(v=>({w:v.w,hint:DRAW[v.p]?`<span class="pic" style="width:80px;height:80px">${svg(v.p)}</span>`:`<span class="mg-emoji">${v.p}</span>`})),
+  pairsTitle:"Junta cada dibujo con su palabra en inglés",
+  pairs:()=>VOC.map(v=>[DRAW[v.p]?`<span class="pic" style="width:54px;height:54px">${svg(v.p)}</span>`:`<span class="em">${v.p}</span>`,`<b style="font-size:1rem">${v.w}</b>`]),
+  search:()=>[
+    {title:"Sources of heat",words:W_SRC},
+    {title:"Materials",words:W_MAT},
+    {title:"Heat words",words:W_HEAT}
+  ],
+  quiz:()=>{ const q=GEN[rnd(["sources","heattemp","states","cond","energy"])](); return {label:q.label,display:q.display,options:q.options,answer:q.answer}; },
+  dict:()=>[...W_SRC,...W_MAT,...W_HEAT,"ice","water","kettle"],
+  catch:()=>[
+    {title:"Tap only natural sources · Toca solo fuentes naturales",yes:["sun","volcano","hot spring","hot sand"],no:["oven","iron","heater","hairdryer","kettle","microwave","light bulb"]},
+    {title:"Tap only conductors · Toca solo conductores",yes:["metal","iron","gold","silver","aluminium","metal spoon"],no:["wood","plastic","rubber","wool","pencil","wool socks"]},
+    {title:"Tap only words about heat · Toca solo palabras del calor",yes:["energy","hot","warm","fire","melt","sun","temperature","volcano"],no:["doctor","pencil","bucket","book","socks","dog"]}
+  ]
+});
+</script>
+<script src="ciencias4-cfg.js"></script>
+</body>
+</html>
